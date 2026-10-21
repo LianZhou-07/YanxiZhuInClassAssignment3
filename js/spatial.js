@@ -17,8 +17,8 @@ function spatial(opts={}) {
       right: 0,
       bottom: 0
     },
-    width = 500, // change this to the screenshot's width
-    height = 500, // change this to the screenshot's height
+    width = 934, // boston_map.png width in pixels
+    height = 1076, // boston_map.png height in pixels
     xValue = d => d[0],
     yValue = d => d[1],
     xLabelText = "",
@@ -80,6 +80,13 @@ function spatial(opts={}) {
       ])
       .rangeRound([height, 0]);
 
+    // Draw larger circles first so smaller ones stay on top and visible
+    data = data.slice().sort((a, b) =>
+      d3.descending(+a['trip start count'], +b['trip start count']));
+
+    // Brush layer sits under the points so hovering a point shows its tooltip
+    let brushLayer = svg.append("g");
+
     // Add the points
     let points = svg.append("g")
       .selectAll(".scatterPoint")
@@ -90,12 +97,25 @@ function spatial(opts={}) {
     // YOUR CODE HERE:
     // Here, you can modify the radius or any other quality of the points
     // in order to encode additional data.
-    // rScale
-    //   .domain([
-    //     d3.min(data, d => +d['trip start count']),
-    //     d3.max(data, d => +d['trip start count'])
-    //     ])
-    //   .range([1, 100]);
+    //
+    // Radius encodes 'trip start count'. The original range [1, 100] was the
+    // problem: busy stations got 100px radii and covered the map. We use a
+    // square-root scale (so circle AREA, not radius, is proportional to the
+    // count), anchor the domain at 0, and shrink the range to [0, 18] px.
+    rScale = d3.scaleSqrt()
+      .domain([0, d3.max(data, d => +d['trip start count'])])
+      .range([0, 18]);
+
+    // Optional challenge: also show 'trip end count'. Fill color encodes net
+    // flow = (end - start) / (end + start): red stations lose bikes (more trips
+    // start there), blue stations gain bikes (more trips end there).
+    let netFlow = d => {
+      let s = +d['trip start count'], e = +d['trip end count'];
+      return (e - s) / (e + s);
+    };
+    let colorScale = d3.scaleDiverging(t => d3.interpolateRdBu(t))
+      .domain([-0.3, 0, 0.3])
+      .clamp(true);
 
     points = points.enter()
       .append("circle")
@@ -103,14 +123,23 @@ function spatial(opts={}) {
       .merge(points)
         .attr("cx", X)
         .attr("cy", Y)
-        .attr("r", (d) => { return 5; })
-        // .attr("r", (d) => { return rScale(+d['trip start count'])})
-        .attr("fill", "purple")
-        .attr("opacity", 0.7);
+        // .attr("r", (d) => { return 5; })
+        .attr("r", (d) => { return rScale(+d['trip start count'])})
+        .attr("fill", d => colorScale(netFlow(d)))
+        .attr("stroke", "#333")
+        .attr("stroke-width", 0.5)
+        .attr("opacity", 0.85);
+
+    // Tooltip on hover
+    points.append("title")
+      .text(d => `${d.Name}\nTrips started: ${d['trip start count']}` +
+        `\nTrips ended: ${d['trip end count']}`);
+
+    drawLegend(svg, rScale, colorScale);
     
     selectableElements = points;
     
-    svg.call(brush);
+    brushLayer.call(brush);
 
     // Highlight points when brushed
     function brush(g) {
@@ -160,6 +189,55 @@ function spatial(opts={}) {
     }
 
     return chart;
+  }
+
+  // Size legend (trip starts) and color legend (net flow), top-left corner
+  function drawLegend(svg, rScale, colorScale) {
+    let legend = svg.append("g")
+      .attr("class", "legend")
+      .attr("transform", "translate(12, 12)")
+      .style("font", "12px sans-serif")
+      .style("pointer-events", "none");
+
+    legend.append("rect")
+      .attr("width", 190).attr("height", 155)
+      .attr("fill", "white").attr("opacity", 0.85)
+      .attr("stroke", "#999").attr("rx", 4);
+
+    legend.append("text").attr("x", 10).attr("y", 20)
+      .attr("font-weight", "bold").text("Trips started (size)");
+
+    let sizes = [100, 1000, 3000];
+    let maxR = rScale(sizes[sizes.length - 1]);
+    let baseY = 30 + 2 * maxR;
+    sizes.forEach(v => {
+      legend.append("circle")
+        .attr("cx", 10 + maxR).attr("cy", baseY - rScale(v)).attr("r", rScale(v))
+        .attr("fill", "none").attr("stroke", "#333");
+      legend.append("line")
+        .attr("x1", 10 + maxR).attr("x2", 30 + 2 * maxR)
+        .attr("y1", baseY - 2 * rScale(v)).attr("y2", baseY - 2 * rScale(v))
+        .attr("stroke", "#999").attr("stroke-dasharray", "2,2");
+      legend.append("text")
+        .attr("x", 34 + 2 * maxR).attr("y", baseY - 2 * rScale(v) + 4)
+        .text(d3.format(",")(v));
+    });
+
+    let cy = baseY + 25;
+    legend.append("text").attr("x", 10).attr("y", cy)
+      .attr("font-weight", "bold").text("Net flow (color)");
+
+    let w = 170, steps = d3.range(0, 1.0001, 0.05);
+    legend.selectAll(".swatch").data(steps).enter().append("rect")
+      .attr("x", t => 10 + t * (w - w / steps.length))
+      .attr("y", cy + 8)
+      .attr("width", w / steps.length + 0.5).attr("height", 12)
+      .attr("fill", t => colorScale(-0.3 + 0.6 * t));
+    legend.append("text").attr("x", 10).attr("y", cy + 36).text("more starts");
+    legend.append("text").attr("x", 10 + w).attr("y", cy + 36)
+      .attr("text-anchor", "end").text("more ends");
+    legend.append("text").attr("x", 10).attr("y", cy + 52)
+      .attr("fill", "#555").text("(end − start) / (end + start)");
   }
 
   // The x-accessor from the datum

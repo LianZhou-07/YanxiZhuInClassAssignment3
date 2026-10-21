@@ -46,6 +46,21 @@
       Bluebikes is a bike share company that rents bikes for short-term trips in the Boston area.  They have made various data <a href="https://www.bluebikes.com/system-data">publicly available</a>.  On this page, we are visualizing the locations of their bike stations in March, 2017.  
     </p>
 
+    <p>
+      Each circle is a station. Its <strong>area</strong> is proportional to the number of trips that
+      <strong>started</strong> there, and its <strong>color</strong> shows the net flow of bikes,
+      (end &minus; start) / (end + start): red stations lose bikes (more departures), blue stations gain
+      bikes (more arrivals). Hover over a station for its exact counts, or drag on the map to brush stations.
+    </p>
+
+    <p>
+      <em>Which part of the radius scale caused the occlusion?</em> The <strong>range</strong>. The domain
+      just spans the data (trip start counts), but the original range <code>[1, 100]</code> let the busiest
+      stations reach a 100&nbsp;px radius, covering their neighbors. Shrinking the range (here to
+      <code>[0, 18]</code>) fixes this. We also switched to <code>d3.scaleSqrt</code> with the domain
+      anchored at 0, so that circle area, rather than radius, is proportional to the count.
+    </p>
+
   
   <!-- Visualization goes here -->
   <div class="vis-holder">
@@ -69,6 +84,10 @@
             call them with arguments. We use it for linking.</li>
         </ul>
       </li>
+      <li>Background map: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors
+        (standard map tiles), cropped to the station
+        bounding box by <code>tools/make_basemap.py</code> (same bounding box one would enter in
+        <a href="http://bboxfinder.com/">bboxfinder.com</a>).</li>
       <li>Data from Bluebikes's <a href="https://www.bluebikes.com/system-data">System Data page</a>, accessed March 7, 2020.</li>
     </ul>
   </div>
