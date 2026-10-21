@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<!--
+  COSI 116A: Information Visualization
+  In-class programming: Blue Bikes
+  Author: Dylan Cashman
+-->
+<html lang="en">
+
+<!-- Metadata -->
+<head>
+  <meta charset="utf-8">
+
+  <!-- Title -->
+  <title>In-class Programming: Blue Bikes</title>
+  
+  <!-- CSS Styling -->
+  <link rel="stylesheet" href="style.css">
+ 
+  <!-- Favicons -->
+  <link rel="apple-touch-icon" sizes="180x180" href="favicons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicons/favicon-16x16.png">
+  <link rel="manifest" href="favicons/site.webmanifest">
+  <link rel="shortcut icon" href="favicons/favicon.ico">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="msapplication-config" content="favicons/browserconfig.xml">
+  <meta name="theme-color" content="#ffffff">
+</head>
+
+<!-- Main page content -->
+<body>
+  
+  
+  <!-- Writeup -->
+  <div class="content-column">
+    <h1>In-class Programming: Blue Bikes</h1>
+    <h3>COSI 116A: Information Visualization</h3>
+
+    <p>
+      In this assignment you will learn how to make a simple spatial visualization using a scatterplot with a map background.
+    </p>
+
+    <h2>Blue Bike rentals in March, 2017</h2>
+
+    <p>
+      Bluebikes is a bike share company that rents bikes for short-term trips in the Boston area.  They have made various data <a href="https://www.bluebikes.com/system-data">publicly available</a>.  On this page, we are visualizing the locations of their bike stations in March, 2017.  
+    </p>
+
+  
+  <!-- Visualization goes here -->
+  <div class="vis-holder">
+    <div class="spatial-holder" id="spatial"></div>
+  </div>
+
+  <!-- Further writeup -->
+  <div class="content-column">
+    <h2>Acknowledgments</h2>
+
+    <p>
+      <em>List here where any code, packages/libraries, text, images, designs, etc. that you leverage come from.</em>
+    </p>
+
+    <ul>
+      <li><a href="https://d3js.org/">D3: Data-Driven Documents</a> by Mike Bostock. In particular:
+        <ul>
+          <li><a href="https://github.com/d3/d3-brush">d3-brush</a>, which let you select a one- or two-dimensional
+            region using the mouse or touch. We use it for brushing.</li>
+          <li><a href="https://github.com/d3/d3-dispatch">d3-dispatch</a>, which lets you register named callbacks and
+            call them with arguments. We use it for linking.</li>
+        </ul>
+      </li>
+      <li>Data from Bluebikes's <a href="https://www.bluebikes.com/system-data">System Data page</a>, accessed March 7, 2020.</li>
+    </ul>
+  </div>
+
+  <!-- Scripts at the end avoid need for dealing with async, defer, or onload event handlers -->
+  <script src="lib/d3.v7/d3.v7.min.js"></script>
+  <script src="js/spatial.js"></script>
+  <script src="js/visualization.js"></script>
+</body>
+
+</html>
